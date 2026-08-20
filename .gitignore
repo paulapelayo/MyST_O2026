@@ -1,0 +1,4 @@
+.venv
+#*.ipynb # Ignora todos los archivos con terminacion .ipynb
+.xlaude
+*.parquet
