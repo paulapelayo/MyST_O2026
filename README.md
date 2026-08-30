@@ -1,4 +1,4 @@
-# Laboratorio: Modelo de Copeland y Galai (1983)
+# Laboratorio 01: Modelo de Copeland y Galai (1983)
 
 Laboratorio de la materia **Microestructura de Mercado** (ITESO) sobre el
 modelo de asimetría de información de Copeland y Galai (1983), en el que el
