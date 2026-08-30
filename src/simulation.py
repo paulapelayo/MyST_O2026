@@ -139,15 +139,28 @@ def monte_carlo_regimen(bid, ask, n_corridas=1_000, n_trades=1_000):
     return pnl_por_corrida.sum(axis=1)
 
 
-def monte_carlo_regimenes(n_corridas=1_000, n_trades=1_000):
+def monte_carlo_pnl_por_regimen(n_corridas=1_000, n_trades=1_000):
     """
-    Resume el análisis de Monte Carlo para los tres regímenes de
-    REGIMENES: P&L promedio, desviación estándar del P&L y probabilidad
-    de pérdida (proporción de corridas cuyo P&L final resultó negativo).
+    Corre monte_carlo_regimen para cada régimen de REGIMENES y regresa un
+    diccionario {regimen: array de P&L finales}, uno por corrida. Es la
+    versión "cruda" del Monte Carlo, útil para graficar la distribución
+    completa además del resumen numérico.
+    """
+    return {
+        nombre: monte_carlo_regimen(bid, ask, n_corridas, n_trades)
+        for nombre, (bid, ask) in REGIMENES.items()
+    }
+
+
+def resumir_montecarlo(pnl_por_regimen):
+    """
+    Resume, a partir de los arrays de P&L final por régimen (por ejemplo
+    los que regresa monte_carlo_pnl_por_regimen), el P&L promedio, la
+    desviación estándar del P&L y la probabilidad de pérdida (proporción
+    de corridas cuyo P&L final resultó negativo).
     """
     filas = []
-    for nombre, (bid, ask) in REGIMENES.items():
-        pnl_final = monte_carlo_regimen(bid, ask, n_corridas, n_trades)
+    for nombre, pnl_final in pnl_por_regimen.items():
         filas.append({
             "regimen": nombre,
             "pnl_promedio": round(float(pnl_final.mean()), 4),
@@ -155,6 +168,15 @@ def monte_carlo_regimenes(n_corridas=1_000, n_trades=1_000):
             "prob_perdida": round(float((pnl_final < 0).mean()), 4),
         })
     return pd.DataFrame(filas)
+
+
+def monte_carlo_regimenes(n_corridas=1_000, n_trades=1_000):
+    """
+    Resume el análisis de Monte Carlo para los tres regímenes de
+    REGIMENES: P&L promedio, desviación estándar del P&L y probabilidad
+    de pérdida (proporción de corridas cuyo P&L final resultó negativo).
+    """
+    return resumir_montecarlo(monte_carlo_pnl_por_regimen(n_corridas, n_trades))
 
 
 if __name__ == "__main__":
