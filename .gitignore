@@ -1,4 +1,34 @@
-.venv
-#*.ipynb # Ignora todos los archivos con terminacion .ipynb
-.xlaude
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Bytecode / cache de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Distribución / empaquetado
+build/
+dist/
+*.egg-info/
+
+# Datos y archivos generados
 *.parquet
+*.csv
+*.xlsx
+
+# Entornos y variables
+.env
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+
+# Herramientas
+.xlaude
