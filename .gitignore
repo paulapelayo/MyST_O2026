@@ -21,6 +21,7 @@ dist/
 *.parquet
 *.csv
 *.xlsx
+output/
 
 # Entornos y variables
 .env
