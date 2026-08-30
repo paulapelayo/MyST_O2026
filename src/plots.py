@@ -64,18 +64,28 @@ def graficar_densidad_y_spreads(guardar_en="output/01_densidad_y_spreads.png"):
 def graficar_pnl_por_trade(trades_df, guardar_en="output/02_pnl_por_trade.png"):
     """
     Grafica, en un panel por régimen, el histograma del P&L de cada trade
-    simulado (incluye los intentos que no se ejecutaron, con P&L = 0).
-    trades_df es el DataFrame que regresa
-    simulation.simular_todos_los_regimenes().
+    simulado. Los intentos que no se ejecutaron (P&L = 0 por definición,
+    ver simulation._generar_pnl) se excluyen del histograma para no
+    aplastar la escala con un solo pico en cero; en su lugar, cada panel
+    anota qué porcentaje de los intentos no se ejecutó. trades_df es el
+    DataFrame que regresa simulation.simular_todos_los_regimenes().
     """
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), sharey=True)
 
     for ax, nombre in zip(axes, REGIMEN_ORDEN):
-        pnl = trades_df.loc[trades_df["regimen"] == nombre, "pnl"]
-        ax.hist(pnl, bins=60, color=REGIMEN_COLORES[nombre])
+        trades_regimen = trades_df.loc[trades_df["regimen"] == nombre]
+        pnl_ejecutados = trades_regimen.loc[trades_regimen["ejecutado"], "pnl"]
+        pct_no_ejecutados = 100 * (1 - trades_regimen["ejecutado"].mean())
+
+        ax.hist(pnl_ejecutados, bins=60, color=REGIMEN_COLORES[nombre])
         ax.set_title(REGIMEN_ETIQUETAS[nombre])
-        ax.set_xlabel("P&L por trade")
+        ax.set_xlabel("P&L por trade (solo ejecutados)")
         ax.axvline(0, color="black", linewidth=0.8)
+        ax.text(
+            0.02, 0.95, f"No ejecutados: {pct_no_ejecutados:.1f}%",
+            transform=ax.transAxes, va="top", fontsize=9,
+            bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
+        )
 
     axes[0].set_ylabel("Número de trades")
     fig.suptitle("Distribución del P&L por trade (10,000 trades simulados)")
