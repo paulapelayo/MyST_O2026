@@ -13,27 +13,35 @@ Recibe los resultados ya calculados por src/model.py y src/simulation.py
        probabilidad de pérdida por régimen.
 """
 
+"""
+Generación de figuras para el laboratorio de Copeland y Galai (1983).
+"""
+
 import os
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import erlang
 
-from src import model
-from src import simulation
+try:
+    from src import model
+    from src import simulation
+except ImportError:
+    import model
+    import simulation
+
+_RAIZ_PROYECTO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_DIRECTORIO_OUTPUT = os.path.join(_RAIZ_PROYECTO, "output")
 
 REGIMEN_ORDEN = ["optimo", "estrecho", "amplio"]
 REGIMEN_ETIQUETAS = {"optimo": "Óptimo", "estrecho": "Estrecho", "amplio": "Amplio"}
 REGIMEN_COLORES = {"optimo": "#2ca02c", "estrecho": "#d62728", "amplio": "#1f77b4"}
 
 
-def graficar_densidad_y_spreads(guardar_en="output/01_densidad_y_spreads.png"):
-    """
-    Grafica la densidad Erlang del valor verdadero del activo (f(P) de
-    src/model.py) y marca, con líneas verticales, el Bid y el Ask de cada
-    régimen de cotización. Sirve para ver visualmente qué tan "adentro" o
-    "afuera" de la distribución queda cada spread.
-    """
+def graficar_densidad_y_spreads(guardar_en=None):
+    if guardar_en is None:
+        guardar_en = os.path.join(_DIRECTORIO_OUTPUT, "01_densidad_y_spreads.png")
+
     lo = erlang.ppf(0.001, model.K, scale=1 / model.LAMBDA)
     hi = erlang.ppf(0.999, model.K, scale=1 / model.LAMBDA)
     P = np.linspace(lo, hi, 500)
@@ -61,15 +69,10 @@ def graficar_densidad_y_spreads(guardar_en="output/01_densidad_y_spreads.png"):
     return guardar_en
 
 
-def graficar_pnl_por_trade(trades_df, guardar_en="output/02_pnl_por_trade.png"):
-    """
-    Grafica, en un panel por régimen, el histograma del P&L de cada trade
-    simulado. Los intentos que no se ejecutaron (P&L = 0 por definición,
-    ver simulation._generar_pnl) se excluyen del histograma para no
-    aplastar la escala con un solo pico en cero; en su lugar, cada panel
-    anota qué porcentaje de los intentos no se ejecutó. trades_df es el
-    DataFrame que regresa simulation.simular_todos_los_regimenes().
-    """
+def graficar_pnl_por_trade(trades_df, guardar_en=None):
+    if guardar_en is None:
+        guardar_en = os.path.join(_DIRECTORIO_OUTPUT, "02_pnl_por_trade.png")
+
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), sharey=True)
 
     for ax, nombre in zip(axes, REGIMEN_ORDEN):
@@ -97,13 +100,10 @@ def graficar_pnl_por_trade(trades_df, guardar_en="output/02_pnl_por_trade.png"):
     return guardar_en
 
 
-def graficar_montecarlo_pnl_final(pnl_por_regimen, guardar_en="output/03_montecarlo_pnl_final.png"):
-    """
-    Grafica, sobrepuestos en un solo panel, los histogramas del P&L final
-    (acumulado en 1,000 trades) de las 1,000 corridas de Monte Carlo de
-    cada régimen. pnl_por_regimen es el diccionario que regresa
-    simulation.monte_carlo_pnl_por_regimen().
-    """
+def graficar_montecarlo_pnl_final(pnl_por_regimen, guardar_en=None):
+    if guardar_en is None:
+        guardar_en = os.path.join(_DIRECTORIO_OUTPUT, "03_montecarlo_pnl_final.png")
+
     fig, ax = plt.subplots(figsize=(9, 5))
 
     for nombre in REGIMEN_ORDEN:
@@ -125,13 +125,10 @@ def graficar_montecarlo_pnl_final(pnl_por_regimen, guardar_en="output/03_monteca
     return guardar_en
 
 
-def graficar_resumen_regimenes(resumen_df, guardar_en="output/04_resumen_regimenes.png"):
-    """
-    Grafica un resumen comparativo de los tres regímenes: P&L promedio
-    con barras de error de una desviación estándar, y probabilidad de
-    pérdida. resumen_df es el DataFrame que regresa
-    simulation.resumir_montecarlo() (o monte_carlo_regimenes()).
-    """
+def graficar_resumen_regimenes(resumen_df, guardar_en=None):
+    if guardar_en is None:
+        guardar_en = os.path.join(_DIRECTORIO_OUTPUT, "04_resumen_regimenes.png")
+
     resumen_df = resumen_df.set_index("regimen").loc[REGIMEN_ORDEN]
     etiquetas = [REGIMEN_ETIQUETAS[nombre] for nombre in resumen_df.index]
     colores = [REGIMEN_COLORES[nombre] for nombre in resumen_df.index]
@@ -157,16 +154,37 @@ def graficar_resumen_regimenes(resumen_df, guardar_en="output/04_resumen_regimen
     return guardar_en
 
 
-def generar_figuras(trades_df, pnl_montecarlo, resumen_montecarlo, directorio="output"):
-    """
-    Genera y guarda las cuatro figuras del laboratorio a partir de
-    resultados ya calculados (no vuelve a simular). Regresa la lista de
-    rutas de los archivos guardados.
-    """
+def generar_figuras(trades_df, pnl_montecarlo, resumen_montecarlo, directorio=None):
+    if directorio is None:
+        directorio = _DIRECTORIO_OUTPUT
+
     os.makedirs(directorio, exist_ok=True)
     return [
-        graficar_densidad_y_spreads(f"{directorio}/01_densidad_y_spreads.png"),
-        graficar_pnl_por_trade(trades_df, f"{directorio}/02_pnl_por_trade.png"),
-        graficar_montecarlo_pnl_final(pnl_montecarlo, f"{directorio}/03_montecarlo_pnl_final.png"),
-        graficar_resumen_regimenes(resumen_montecarlo, f"{directorio}/04_resumen_regimenes.png"),
+        graficar_densidad_y_spreads(os.path.join(directorio, "01_densidad_y_spreads.png")),
+        graficar_pnl_por_trade(trades_df, os.path.join(directorio, "02_pnl_por_trade.png")),
+        graficar_montecarlo_pnl_final(pnl_montecarlo, os.path.join(directorio, "03_montecarlo_pnl_final.png")),
+        graficar_resumen_regimenes(resumen_montecarlo, os.path.join(directorio, "04_resumen_regimenes.png")),
     ]
+
+
+def graficar_sensibilidad(resultados, ruta_salida=None):
+    if ruta_salida is None:
+        ruta_salida = os.path.join(_DIRECTORIO_OUTPUT, "05_sensibilidad_pi_i.png")
+
+    pi_i_vals = [r["pi_i"] for r in resultados]
+    spreads_num = [r["spread"] for r in resultados]
+    spreads_teo = [r["spread_teorico"] for r in resultados]
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.plot(pi_i_vals, spreads_num, "o-", label="Spread óptimo (numérico)")
+    ax.plot(pi_i_vals, spreads_teo, "s--", label="Spread teórico (condición de primer orden)")
+    ax.set_xlabel("πᵢ (probabilidad de trader informado)")
+    ax.set_ylabel("Spread óptimo (A* − B*)")
+    ax.set_title("Sensibilidad del spread óptimo respecto a πᵢ")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+    os.makedirs(os.path.dirname(ruta_salida), exist_ok=True)
+    fig.savefig(ruta_salida, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    return ruta_salida

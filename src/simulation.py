@@ -10,7 +10,10 @@ import numpy as np
 import pandas as pd
 from scipy.stats import erlang
 
-from src import model
+try:
+    from src import model
+except ImportError:
+    import model
 
 # Semilla fija para que la simulación sea reproducible (documentar en README).
 np.random.seed(42)

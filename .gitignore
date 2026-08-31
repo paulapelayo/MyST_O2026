@@ -33,3 +33,5 @@ output/
 
 # Herramientas
 .xlaude
+
+.pytest_cache/

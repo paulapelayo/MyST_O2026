@@ -13,7 +13,7 @@ trade dado ese riesgo.
 import numpy as np
 from scipy import integrate, optimize
 from scipy.stats import erlang
-
+from scipy.optimize import brentq
 
 # ---------------------------------------------------------------------------
 # Parámetros del caso base
@@ -89,57 +89,44 @@ def perdida_esperada_bid(B):
     return valor
 
 
-def utilidad_esperada(A, B):
+def utilidad_esperada(A, B, pi_i=PI_I, pi_l=PI_L):
     """
     Utilidad esperada por trade del market maker, Π(A, B).
 
-    Es la ganancia esperada de operar con traders de liquidez (que pagan
-    el spread, ponderada por su probabilidad de ejecución) menos la
-    pérdida esperada de operar con traders informados (que siempre
-    aprovechan la diferencia entre el precio pactado y el valor real del
-    activo). El market maker elige A y B para maximizar esta cantidad.
+    pi_i y pi_l son ahora parámetros (no solo constantes globales) para
+    poder reoptimizar el modelo bajo distintos escenarios de probabilidad
+    de trader informado, como pide la sección 3.5.
     """
-    ganancia_liquidez = PI_L * (
+    ganancia_liquidez = pi_l * (
         pi_LB(A - S0) * (A - S0) + pi_LS(S0 - B) * (S0 - B)
     )
-    perdida_informados = PI_I * (
+    perdida_informados = pi_i * (
         perdida_esperada_ask(A) + perdida_esperada_bid(B)
     )
     return ganancia_liquidez - perdida_informados
 
 
-def _objetivo(x):
-    """
-    Función objetivo para el optimizador: el negativo de Π(A, B).
-
-    scipy.optimize.minimize solo minimiza funciones, así que para
-    encontrar el A y B que maximizan la utilidad esperada del market
-    maker, se minimiza -Π(A, B) en su lugar.
-    """
+def _objetivo(x, pi_i=PI_I, pi_l=PI_L):
     A, B = x
-    return -utilidad_esperada(A, B)
+    return -utilidad_esperada(A, B, pi_i=pi_i, pi_l=pi_l)
 
 
-def optimizar_spread(x0=None):
+def optimizar_spread(x0=None, pi_i=PI_I, pi_l=PI_L):
     """
-    Calcula el Bid y Ask óptimos que maximizan Π(A, B).
-
-    Resuelve el problema de optimización del market maker sujeto a
-    B ∈ (0, S0] y A ∈ [S0, ∞). Regresa el Bid óptimo, el Ask óptimo, el
-    spread resultante (Ask − Bid) y la utilidad esperada por trade,
-    todos redondeados a 2 decimales.
+    Calcula el Bid y Ask óptimos que maximizan Π(A, B) para una
+    probabilidad de trader informado pi_i dada (por defecto, el caso base).
     """
     if x0 is None:
         x0 = [S0 + 0.10, S0 - 0.10]
 
-    limites = [(S0, None), (1e-6, S0)]  # (A, B) respectivamente
+    limites = [(S0, None), (1e-6, S0)]
 
     resultado = optimize.minimize(
-        _objetivo, x0=x0, method="L-BFGS-B", bounds=limites
+        _objetivo, x0=x0, args=(pi_i, pi_l), method="L-BFGS-B", bounds=limites
     )
 
     A_opt, B_opt = resultado.x
-    utilidad_opt = utilidad_esperada(A_opt, B_opt)
+    utilidad_opt = utilidad_esperada(A_opt, B_opt, pi_i=pi_i, pi_l=pi_l)
 
     return {
         "bid": round(float(B_opt), 2),
@@ -148,6 +135,40 @@ def optimizar_spread(x0=None):
         "utilidad_esperada": round(float(utilidad_opt), 2),
     }
 
+def f_acumulada(P):
+    """CDF Erlang(K, λ): P(valor verdadero <= P)."""
+    return erlang.cdf(P, K, scale=1 / LAMBDA)
+
+
+def spread_teorico(pi_i, pi_l):
+    """
+    Spread óptimo por lado según la condición de primer orden del modelo:
+
+        π_L·(0.50 − 0.16·s) + π_I·(1 − F(S0 + s)) = 0
+    """
+    def foc(s):
+        A = S0 + s
+        F_A = f_acumulada(A)
+        return pi_l * (0.50 - 0.16 * s) + pi_i * (1 - F_A)
+
+    return brentq(foc, 0.01, 6.24)
+
+
+def analisis_sensibilidad(valores_pi_i=(0.1, 0.4, 0.7)):
+    """
+    Reoptimiza el spread para distintos valores de pi_i, manteniendo
+    pi_l = 1 - pi_i, y lo compara contra el spread teórico.
+    """
+    resultados = []
+    for pi_i in valores_pi_i:
+        pi_l = 1 - pi_i
+        r = optimizar_spread(pi_i=pi_i, pi_l=pi_l)
+        r["pi_i"] = pi_i
+        r["spread_teorico"] = round(2 * spread_teorico(pi_i, pi_l), 2)
+        resultados.append(r)
+    return resultados
+
 
 if __name__ == "__main__":
     print(optimizar_spread())
+    print(analisis_sensibilidad())
