@@ -54,6 +54,21 @@ La función de utilidad esperada por trader que utilizamos en el proyecto fue es
 
 ## Simulación Monte Carlo (sección 3.3)
 
+Cada corrida es una **"vida alterna"** distinta: mismas probabilidades, resultados distintos por azar. De cada una se obtiene el **P&L total**, y con esas 1,000 vidas se calcula:
+
+- **P&L promedio**
+- **Desviación estándar** (riesgo)
+- **% de corridas que terminó en pérdida** ← el dato que realmente importa
+
+### Probabilidad de pérdida por régimen
+
+| Régimen         | % de pérdida |
+|------------------|:------------:|
+| Spread Óptimo    | 0%           |
+| Estrecho         | 100%         |
+| Amplio           | 67%          |
+
+> No importa cuánto ganas **en promedio** — importa cuántas veces, de cada mil, terminas en rojo.
 ## Figuras Obligatorias (3.4)
 
 ## Análisis de sensibilidad (Sección 3.5)
