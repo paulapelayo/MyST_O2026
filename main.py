@@ -11,6 +11,7 @@ Corre el flujo completo con un solo comando (python main.py):
 from src import model
 from src import simulation
 from src import plots
+import pytest
 
 
 def main():
@@ -20,6 +21,12 @@ def main():
     print(f"Ask óptimo:            {resultado['ask']}")
     print(f"Spread:                {resultado['spread']}")
     print(f"Utilidad esperada:     {resultado['utilidad_esperada']}")
+
+    print("\n=== 1b. Análisis de sensibilidad respecto a πᵢ (src/model.py) ===")
+    resultados_sensibilidad = model.analisis_sensibilidad()
+    for r in resultados_sensibilidad:
+        print(f"πᵢ={r['pi_i']}: spread numérico={r['spread']}, "
+              f"spread teórico={r['spread_teorico']}")
 
     print("\n=== 2a. Simulación de 10,000 trades por régimen (src/simulation.py) ===")
     trades = simulation.simular_todos_los_regimenes(n_trades=10_000)
@@ -32,9 +39,19 @@ def main():
 
     print("\n=== 3. Generando figuras (src/plots.py) ===")
     rutas = plots.generar_figuras(trades, pnl_montecarlo, resumen_montecarlo)
+    ruta_sensibilidad = plots.graficar_sensibilidad(resultados_sensibilidad)
+    rutas.append(ruta_sensibilidad)
     for ruta in rutas:
         print(f"Figura guardada: {ruta}")
+
+    print("\n=== 4. Corriendo pruebas (tests/test_model.py) ===")
+    codigo_salida = pytest.main(["tests/", "-v"])
+    if codigo_salida == 0:
+        print("Todas las pruebas pasaron correctamente.")
+    else:
+        print("Alguna prueba falló — revisa el detalle arriba.")
 
 
 if __name__ == "__main__":
     main()
+

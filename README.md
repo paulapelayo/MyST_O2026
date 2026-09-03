@@ -64,10 +64,6 @@ donde F es la CDF Erlang del valor verdadero del activo (ver `spread_teorico()` 
 
 **Nota importante:** el enunciado del laboratorio indica que ese resultado analítico es s\* = 0.50/0.08 = 6.25. Al derivar la condición de primer orden de maximizar s·(0.50 − 0.08s), el máximo real está en s\* = 0.50/(2·0.08) = **3.125** por lado (6.25 es el punto donde la probabilidad de ejecución llega a cero, no el máximo de la ganancia esperada). La prueba usa el valor correcto, verificado contra la salida real del optimizador.
 
-Correr las pruebas desde la raíz del proyecto:
-```bash
-python -m pytest tests/ -v
-```
 
 ## Respuestas a las preguntas de análisis (Sección 4)
 
