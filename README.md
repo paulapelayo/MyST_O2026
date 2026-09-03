@@ -32,10 +32,30 @@ pip install -r requirements.txt
 ```
 
 ## Uso
-
 ```bash
 python main.py
 ```
+
+## Parámetros Utilizados (sección 3.1)
+
+| Parámetro                | Símbolo                  | Valor                | Descripción                                                          |
+|---------------------------|---------------------------|-----------------------|-----------------------------------------------------------------------|
+| Precio de referencia       | S₀                        | 19.90                | Estimación inicial del valor del activo                              |
+| Distribución del valor     | P                          | Erlang(K=60, λ=3)     | Distribución del valor verdadero del activo                          |
+| Prob. informado             | π_i                       | 0.40                  | Probabilidad de que el trader que llega esté informado                |
+| Prob. liquidez              | π_L                       | 0.60                  | Probabilidad de que el trader sea de liquidez                        |
+| Demanda no informada       | π_LB(s), π_LS(s)          | 0.50 − 0.08·s         | Probabilidad de ejecución, acotada inferiormente en cero              |
+
+## 3.2 Fórmula Implementada (sección 3.2)
+La función de utilidad esperada por trader que utilizamos en el proyecto fue es:
+
+    Π(A,B) = π_L · [ π_LB(A−S₀)·(A−S₀) + π_LS(S₀−B)·(S₀−B) ]
+             − π_I · [ ∫_A^∞ (P−A)·f(P) dP + ∫_0^B (B−P)·f(P) dP ]
+
+## Simulación Monte Carlo (sección 3.3)
+
+## Figuras Obligatorias (3.4)
+
 ## Análisis de sensibilidad (Sección 3.5)
 
 Se reoptimizó el spread óptimo para πᵢ ∈ {0.1, 0.4, 0.7}, manteniendo π_L = 1 − πᵢ:
