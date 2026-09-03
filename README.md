@@ -70,6 +70,62 @@ Cada corrida es una **"vida alterna"** distinta: mismas probabilidades, resultad
 
 > No importa cuánto ganas **en promedio** — importa cuántas veces, de cada mil, terminas en rojo.
 ## Figuras Obligatorias (3.4)
+## Figuras del laboratorio
+
+### Figura 1 — Densidad y spreads (`01_densidad_y_spreads.png`)
+
+**Qué muestra:** la campana negra es **f(P)**, la distribución del valor verdadero del activo. Las líneas punteadas de colores marcan dónde caen el **Bid** y el **Ask** de cada régimen sobre esa campana:
+
+- 🟢 **Óptimo** — muy separado del centro
+- 🔴 **Estrecho** — casi pegado al centro
+- 🔵 **Amplio** — a medio camino
+
+**Conclusión:** el spread estrecho está metido dentro de la parte más densa (más probable) de la campana — la mayoría de las veces el valor real del activo cae fuera de ese rango angosto, dándole al informado ventaja casi siempre. El spread óptimo, en cambio, está posicionado justo donde la campana empieza a "adelgazar": suficientemente ancho para dejar la mayor parte de la probabilidad adentro (zona segura, sin ventaja para el informado), sin ensancharse de más. Esta gráfica es la explicación visual de por qué salió ese Bid/Ask óptimo.
+
+---
+
+### Figura 2 — P&L por trade (`02_pnl_por_trade.png`)
+
+**Qué muestra:** para cada régimen, el histograma de cuánto ganaste o perdiste en cada trade que sí se ejecutó (los no concretados se reportan aparte, como %).
+
+**Conclusión:** el patrón de forma se repite en los tres regímenes — muchos trades pequeños ganadores (liquidez, cerca de cero) y una cola de pérdidas más grandes pero menos frecuentes (informados) — pero la **escala** cambia radicalmente:
+
+| Régimen  | Pérdida máxima por trade | % no ejecutados |
+|----------|:-------------------------:|:----------------:|
+| Estrecho | hasta −11                 | —                 |
+| Óptimo   | casi no baja de −6        | 80%               |
+
+El spread ancho filtra mucho tráfico (80% no se concreta), pero el que sí pasa es más sano.
+
+---
+
+### Figura 3 — Monte Carlo, P&L final (`03_montecarlo_pnl_final.png`)
+
+**Qué muestra:** tres campanas separadas, cada una construida con las 1,000 corridas de Monte Carlo de un régimen — la distribución de "cuánto terminaste ganando/perdiendo después de 1,000 trades", repetido 1,000 veces.
+
+**Conclusión — la gráfica más contundente del laboratorio:** las tres campanas **no se tocan entre sí**.
+
+- 🔴 **Estrecho** — completamente del lado negativo (−900 a −600), nunca cruza el cero
+- 🔵 **Amplio** — centrada casi exactamente en cero, a ambos lados del equilibrio
+- 🟢 **Óptimo** — completamente del lado positivo (250 a 500), tampoco toca el cero
+
+Es la evidencia visual de que el resultado no es cuestión de suerte puntual: es una **separación sistemática** entre los tres regímenes.
+
+---
+
+### Figura 4 — Resumen comparativo (`04_resumen_regimenes.png`)
+
+**Qué muestra:** dos barras lado a lado. Izquierda: P&L promedio de cada régimen con barra de error (±1 desviación estándar). Derecha: probabilidad de pérdida de cada régimen.
+
+**Conclusión:** el resumen ejecutivo del laboratorio en una sola imagen:
+
+| Régimen  | P&L promedio | Probabilidad de pérdida |
+|----------|:-------------:|:-------------------------:|
+| Óptimo   | Positivo      | 0%                        |
+| Estrecho | Negativo      | 100%                      |
+| Amplio   | ≈ 0           | 67%                       |
+
+> El promedio solo no cuenta toda la historia: el régimen amplio "parece" casi neutral en promedio, pero es riesgoso. El óptimo es el único que combina **buen promedio y cero riesgo de pérdida**.
 
 ## Análisis de sensibilidad (Sección 3.5)
 
